@@ -14,6 +14,6 @@ public class ProductModel implements Serializable {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private UUID idProject;
-    private String amor;
+    private String name;
     private BigDecimal value;
 }
