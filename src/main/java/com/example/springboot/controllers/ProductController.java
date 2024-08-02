@@ -10,9 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 
 @RestController
@@ -24,32 +26,40 @@ public class ProductController {
     @PostMapping("/products")
     public ResponseEntity<ProductModel> saveProduct(@RequestBody @Valid ProductRecordDTO productRecordDTO) {
 
-        return productService.saveProduct(productRecordDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.saveProduct(productRecordDTO));
     }
 
     @GetMapping("/products")
     public ResponseEntity<List<ProductModel>> getAllProducts(){
 
-        return productService.getAllProducts();
+        return ResponseEntity.status(HttpStatus.OK).body(productService.getAllProducts());
     }
 
     @GetMapping("/products/{id}")
     public ResponseEntity<Object> getOneProduct(@PathVariable(value = "id")UUID id) {
-
-        return productService.getOneProduct(id);
+        ProductModel productModel = productService.getOneProduct(id);
+        if (productModel == null) {
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(productModel);
     }
 
     @PutMapping("/products/{id}")
     public ResponseEntity<Object> updateProduct(@PathVariable(value = "id")UUID id,
                                                 @RequestBody @Valid ProductRecordDTO productRecordDTO) {
-
-        return productService.updateProduct(id, productRecordDTO);
+        ProductModel productModel = productService.updateProduct(id,productRecordDTO);
+        if (productModel == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(productService.updateProduct(id, productRecordDTO));
     }
-
     @DeleteMapping("/products/{id}")
-    public ResponseEntity<Object> deleteProduct(@PathVariable(value = "id")UUID id) {
-
-        return productService.delectProduct(id);
+    public ResponseEntity<Object> delectProduct(@PathVariable(value = "id")UUID id) {
+        Boolean isDeleted = productService.delectProduct(id);
+        if (isDeleted) {
+            return ResponseEntity.status(HttpStatus.OK).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body("Product not found");
     }
 
 }

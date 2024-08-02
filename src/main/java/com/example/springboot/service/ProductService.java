@@ -25,13 +25,13 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public ResponseEntity<ProductModel> saveProduct(ProductRecordDTO productRecordDTO) {
+    public ProductModel saveProduct(ProductRecordDTO productRecordDTO) {
         ProductModel productModel = new ProductModel();
         BeanUtils.copyProperties(productRecordDTO, productModel);
-        return ResponseEntity.status(HttpStatus.CREATED).body(productRepository.save(productModel));
+        return productRepository.save(productModel);
     }
 
-    public ResponseEntity<List<ProductModel>> getAllProducts() {
+    public List<ProductModel> getAllProducts() {
         List<ProductModel> productsList = productRepository.findAll();
         if (!productsList.isEmpty()) {
             for (ProductModel product : productsList) {
@@ -39,36 +39,36 @@ public class ProductService {
                 product.add(linkTo(methodOn(ProductController.class).getOneProduct(id)).withSelfRel());
             }
         }
-        return ResponseEntity.status(HttpStatus.OK).body(productsList);
+        return productsList;
     }
 
-    public ResponseEntity<Object> getOneProduct(UUID id) {
+    public ProductModel getOneProduct(UUID id) {
         Optional<ProductModel> getOneProductOpt = productRepository.findById(id);
         if (getOneProductOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+            return null;
         }
         getOneProductOpt.get().add(linkTo(methodOn(ProductController.class).getAllProducts()).withRel("Products List"));
-
-        return ResponseEntity.status(HttpStatus.OK).body(getOneProductOpt);
+        return getOneProductOpt.get();
     }
 
-    public ResponseEntity<Object> updateProduct(UUID id, ProductRecordDTO productRecordDTO){
+    public ProductModel updateProduct(UUID id, ProductRecordDTO productRecordDTO){
         Optional<ProductModel> UpdateProductOpt = productRepository.findById(id);
         if (UpdateProductOpt.isPresent()) {
              ProductModel productModel = UpdateProductOpt.get();
             BeanUtils.copyProperties(productRecordDTO, productModel );
-            return ResponseEntity.status(HttpStatus.OK).body(productRepository.save(productModel));
+            return productRepository.save(productModel);
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found.");
+        return null;
     }
 
-    public ResponseEntity<Object> delectProduct(UUID id) {
+    public boolean delectProduct(UUID id) {
         Optional<ProductModel> delectProductOpt = productRepository.findById(id);
-        if (delectProductOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+        if (delectProductOpt.isPresent()) {
+            productRepository.delete(delectProductOpt.get());
+            return true;
+        } else {
+            return false;
         }
-        productRepository.delete(delectProductOpt.get());
-        return ResponseEntity.status(HttpStatus.OK).body("Product deleted successfully.");
     }
 
 }
